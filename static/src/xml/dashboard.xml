@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="remote_dashboard.Dashboard" owl="1">
+        <div class="rd-dashboard">
+            <!-- Header -->
+            <div class="rd-header">
+                <div class="rd-header-left">
+                    <h2 class="rd-title" t-esc="state.dashboardName || 'Dashboard'" />
+                    <span class="rd-sync-info" t-if="state.lastSync">
+                        Última sync: <t t-esc="formatDate(state.lastSync)" />
+                    </span>
+                    <span class="rd-countdown">
+                        <i class="fa fa-hourglass-half" /> <t t-esc="state.refreshCountdown" />s
+                    </span>
+                </div>
+                <div class="rd-header-center" t-if="state.currentTime">
+                    <span class="rd-clock">
+                        <i class="fa fa-clock-o" /> <t t-esc="state.currentTime" />
+                    </span>
+                </div>
+                <div class="rd-header-right">
+                    <div class="rd-zoom-controls">
+                        <button class="btn btn-sm rd-zoom-btn" t-on-click="onZoomOut" title="Reducir texto">
+                            <i class="fa fa-minus" />
+                        </button>
+                        <span class="rd-zoom-label" t-on-click="onZoomReset" title="Restablecer zoom"><t t-esc="state.zoomLevel" />%</span>
+                        <button class="btn btn-sm rd-zoom-btn" t-on-click="onZoomIn" title="Agrandar texto">
+                            <i class="fa fa-plus" />
+                        </button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary rd-btn" t-on-click="onRefresh" t-att-disabled="state.loading">
+                        <i class="fa fa-refresh" t-att-class="{'fa-spin': state.loading}" /> Actualizar
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary rd-btn" t-on-click="onSyncRemote" t-att-disabled="state.syncing">
+                        <i class="fa fa-cloud-download" t-att-class="{'fa-spin': state.syncing}" /> Sincronizar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zoomable content area -->
+            <div class="rd-zoomable" t-att-style="'zoom: ' + (state.zoomLevel / 100)">
+
+            <!-- KPIs -->
+            <div class="rd-kpis" t-if="state.kpis">
+                <div class="rd-kpi">
+                    <div class="rd-kpi-value" t-esc="state.kpis.new_today || 0" />
+                    <div class="rd-kpi-label">Nuevos hoy</div>
+                </div>
+                <div class="rd-kpi">
+                    <div class="rd-kpi-value" t-esc="state.kpis.completed_today || 0" />
+                    <div class="rd-kpi-label">Completados hoy</div>
+                </div>
+                <div class="rd-kpi">
+                    <div class="rd-kpi-value" t-esc="state.kpis.state_changes_today || 0" />
+                    <div class="rd-kpi-label">Cambios de estado</div>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="rd-loading" t-if="state.loading and !state.configured">
+                <i class="fa fa-spinner fa-spin fa-3x" />
+                <p>Cargando dashboard…</p>
+            </div>
+
+            <!-- Not configured -->
+            <div class="rd-empty" t-if="!state.loading and !state.configured">
+                <i class="fa fa-cogs fa-3x" />
+                <p>No hay ninguna configuración de dashboard.</p>
+            </div>
+
+            <!-- Columns -->
+            <div class="rd-columns-container" t-if="state.configured">
+                <t t-foreach="state.visibleColumns" t-as="colKey" t-key="colKey">
+                    <div t-attf-class="rd-column rd-column-#{colKey}" t-att-style="getColumnItems(colKey).length === 0 and colKey === 'mostrador_despachar' ? 'flex: 0 0 50px; min-width: 50px;' : ''">
+                        <div class="rd-column-header">
+                            <h3 class="rd-column-title">
+                                <t t-esc="getColumnLabel(colKey)" />
+                            </h3>
+                            <span class="rd-column-count badge">
+                                <t t-esc="getColumnItems(colKey).length" />
+                            </span>
+                        </div>
+
+                        <div class="rd-column-body">
+                            <div class="rd-no-items" t-if="getColumnItems(colKey).length === 0">
+                                <i class="fa fa-check-circle fa-2x" t-if="colKey === 'mostrador_despachar'" style="color: #27ae60;" />
+                                <i class="fa fa-inbox fa-2x" t-if="colKey !== 'mostrador_despachar'" />
+                                <p t-if="colKey !== 'mostrador_despachar'">Sin pedidos</p>
+                            </div>
+
+                            <t t-foreach="getColumnItems(colKey)" t-as="picking" t-key="picking.remote_id">
+                                <div t-attf-class="rd-card rd-card-#{colKey}">
+                                    <!-- Card top bar: SO number | Partner name | State | Waiting time -->
+                                    <div class="rd-card-topbar">
+                                        <div class="rd-card-topbar-left">
+                                            <a t-if="picking.sale_order_remote_id and picking.origin"
+                                               class="rd-card-so rd-remote-link"
+                                               t-on-click="(ev) => this.openRemoteSaleOrder(ev, picking.sale_order_remote_id)"
+                                               t-att-title="'Abrir pedido: ' + picking.origin">
+                                                <t t-esc="picking.origin" />
+                                            </a>
+                                            <span t-elif="picking.origin" class="rd-card-so">
+                                                <t t-esc="picking.origin" />
+                                            </span>
+
+                                            <span class="rd-card-partner" t-if="picking.partner_name">
+                                                <t t-esc="picking.partner_name" />
+                                            </span>
+                                        </div>
+                                        <div class="rd-card-topbar-right">
+                                            <span t-if="picking.x_tipo_pedido === 'Mostrador Retira'" class="rd-tipo-pedido-badge">
+                                                Mostrador Retira
+                                            </span>
+                                            <span t-attf-class="badge rd-state-badge rd-state-#{picking.state}">
+                                                <t t-esc="picking.state_label || picking.state" />
+                                            </span>
+                                            <span class="rd-waiting-badge" t-if="picking.waiting_minutes > 0">
+                                                <i class="fa fa-clock-o" />
+                                                <t t-esc="formatWaiting(picking.waiting_minutes)" />
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Card body: left sidebar (15%) + right products -->
+                                    <div class="rd-card-body">
+                                        <!-- Left sidebar: picking # + buttons -->
+                                        <div class="rd-card-sidebar">
+                                            <a class="rd-picking-number rd-remote-link" t-on-click="(ev) => this.openRemotePicking(ev, picking.remote_id)" t-att-title="'Abrir picking: ' + picking.name">
+                                                <t t-esc="picking.name" />
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-secondary rd-sidebar-btn" t-on-click="(ev) => this.onPrintPicking(ev, picking.remote_id)" title="Imprimir PDF">
+                                                <i class="fa fa-print" />
+                                            </button>
+                                            <button t-if="state.zplLabelMode !== 'none' and state.hasZplPrinter"
+                                                    class="btn btn-sm btn-warning rd-sidebar-btn"
+                                                    t-on-click="(ev) => this.onPrintZPLLabel(ev, picking.remote_id)"
+                                                    title="Imprimir Etiqueta ZPL">
+                                                <i class="fa fa-barcode" />
+                                            </button>
+                                            <button t-if="state.zplLabelMode !== 'none'"
+                                                    class="btn btn-sm btn-info rd-sidebar-btn"
+                                                    t-on-click="(ev) => this.onViewZPLLabel(ev, picking.remote_id)"
+                                                    title="Ver ZPL">
+                                                <i class="fa fa-file-text-o" />
+                                            </button>
+                                            <button class="btn btn-sm btn-success rd-sidebar-btn" t-on-click="(ev) => this.onValidatePicking(ev, picking.remote_id)" title="Validar">
+                                                <i class="fa fa-check" />
+                                            </button>
+                                        </div>
+
+                                        <!-- Right: product lines -->
+                                        <div class="rd-card-products" t-if="picking.move_lines and picking.move_lines.length">
+                                            <table class="rd-products-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Producto</th>
+                                                        <th class="text-end">Dem.</th>
+                                                        <th class="text-end">Hecho</th>
+                                                        <th>UdM</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="picking.move_lines" t-as="ml" t-key="ml_index">
+                                                        <tr>
+                                                            <td class="rd-product-name" t-esc="ml.product_name" />
+                                                            <td class="text-end rd-product-qty" t-esc="ml.product_qty" />
+                                                            <td class="text-end rd-product-qty" t-esc="ml.quantity_done" />
+                                                            <td class="rd-product-uom" t-esc="ml.product_uom" />
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            </div><!-- end rd-zoomable -->
+        </div>
+    </t>
+</templates>

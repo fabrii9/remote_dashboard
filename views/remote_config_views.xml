@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================ -->
+    <!--   Formulario de Configuración                -->
+    <!-- ============================================ -->
+    <record id="view_remote_odoo_config_form" model="ir.ui.view">
+        <field name="name">remote.odoo.config.form</field>
+        <field name="model">remote.odoo.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuración Dashboard Remoto">
+                <header>
+                    <button name="test_connection" type="object" string="Probar Conexión"
+                            class="btn-primary" icon="fa-plug" />
+                    <button name="action_manual_sync" type="object" string="Sincronizar Ahora"
+                            class="btn-secondary" icon="fa-cloud-download" />
+                    <button name="action_open_dashboard" type="object" string="Abrir Dashboard"
+                            class="btn-success" icon="fa-tv" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Nombre del Dashboard" /></h1>
+                    </div>
+
+                    <group>
+                        <group string="Conexión Remota">
+                            <field name="url" widget="url" />
+                            <field name="database" />
+                            <field name="username" />
+                            <field name="password" password="True" />
+                            <field name="remote_uid" />
+                            <field name="last_sync" />
+                        </group>
+                        <group string="Opciones">
+                            <field name="verify_ssl" />
+                            <field name="max_retries" />
+                            <field name="sync_interval" />
+                            <field name="remote_filter_id" />
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Columnas &amp; Tipos de Operación" name="columns">
+                            <group>
+                                <group string="Columnas Visibles">
+                                    <field name="show_mostrador_preparacion" />
+                                    <field name="show_mostrador_despachar" />
+                                    <field name="show_en_preparacion" />
+                                    <field name="show_despachar" />
+                                </group>
+                                <group string="IDs de Tipos de Operación">
+                                    <field name="mostrador_picking_type_ids"
+                                           placeholder="ej: 251" />
+                                    <field name="mostrador_prep_picking_type_ids"
+                                           placeholder="ej: 248" />
+                                    <field name="preparacion_picking_type_ids"
+                                           placeholder="ej: 10,11" />
+                                    <field name="despachar_picking_type_ids"
+                                           placeholder="ej: 20" />
+                                </group>
+                            </group>
+                            <group string="Agrupación">
+                                <field name="group_mostrador" />
+                                <field name="group_preparacion" />
+                                <field name="group_despachar" />
+                            </group>
+                        </page>
+
+                        <page string="Filtro por Estados" name="states">
+                            <group>
+                                <group>
+                                    <button name="action_fetch_states" type="object"
+                                            string="Obtener Estados del Remoto"
+                                            class="btn-primary" icon="fa-download" />
+                                    <field name="available_states" readonly="1"
+                                           widget="text" placeholder="Presione el botón para cargar..." />
+                                </group>
+                                <group>
+                                    <field name="mostrador_prep_states"
+                                           placeholder="ej: assigned, confirmed" />
+                                    <field name="mostrador_despachar_states"
+                                           placeholder="ej: assigned" />
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <i class="fa fa-info-circle" />
+                                <strong> Ayuda:</strong>
+                                Primero presione <em>"Obtener Estados del Remoto"</em> para ver los estados disponibles.
+                                Luego copie los nombres técnicos (ej: <code>assigned</code>, <code>confirmed</code>)
+                                separados por coma en los campos de filtro de cada columna.
+                                Dejar vacío muestra todos los estados excepto <code>done</code> y <code>cancel</code>.
+                            </div>
+                        </page>
+
+                        <page string="Tipo de Pedido" name="tipo_pedido">
+                            <group>
+                                <group>
+                                    <button name="action_fetch_tipo_pedido" type="object"
+                                            string="Obtener Tipos de Pedido"
+                                            class="btn-primary" icon="fa-download" />
+                                    <field name="available_tipo_pedido" readonly="1"
+                                           widget="text" placeholder="Presione el botón para cargar los valores..." />
+                                </group>
+                                <group>
+                                    <field name="x_tipo_pedido_filter"
+                                           placeholder="ej: Mostrador, Mostrador Retira" />
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <i class="fa fa-info-circle" title="Ayuda" />
+                                <strong> Ayuda:</strong>
+                                Primero presione <em>"Obtener Tipos de Pedido"</em> para consultar los valores
+                                disponibles de <code>x_Tipo_Pedido</code> en el Odoo remoto.
+                                Luego copie los valores exactos separados por coma
+                                (ej: <code>Mostrador, Mostrador Retira</code>) en el campo de filtro.
+                                Dejar vacío no filtra por tipo de pedido.
+                            </div>
+                        </page>
+
+                        <page string="Etiquetas ZPL" name="zpl">
+                            <group>
+                                <group string="Generación de Etiquetas">
+                                    <field name="zpl_label_mode" />
+                                </group>
+                                <group string="Impresora ZPL (auto-impresión)">
+                                    <field name="zpl_printer_url"
+                                           placeholder="https://odoo.printemps.com.ar/remote_zpl/print" />
+                                    <field name="zpl_printer_token" />
+                                </group>
+                            </group>
+                            <group string="Logo ZPL (opcional)">
+                                <field name="zpl_logo" widget="text"
+                                       placeholder="Pegue aquí el código GFA del logo (^FO...^GFA,...^FS)" />
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <i class="fa fa-info-circle" />
+                                <strong> Modos de etiqueta:</strong>
+                                <ul>
+                                    <li><strong>Simple:</strong> Una etiqueta por línea de producto (todos los productos).</li>
+                                    <li><strong>BUNDLE_MAP:</strong> Etiquetas divididas por bultos según la capacidad máxima de cada producto. Solo productos configurados en el mapa.</li>
+                                </ul>
+                                <strong>Botones en el dashboard:</strong>
+                                <ul>
+                                    <li><i class="fa fa-barcode" /> Envía la etiqueta a la impresora ZPL (requiere URL y token).</li>
+                                    <li><i class="fa fa-file-text-o" /> Abre el código ZPL como texto en una nueva pestaña.</li>
+                                </ul>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!--   Lista de Configuraciones                   -->
+    <!-- ============================================ -->
+    <record id="view_remote_odoo_config_tree" model="ir.ui.view">
+        <field name="name">remote.odoo.config.tree</field>
+        <field name="model">remote.odoo.config</field>
+        <field name="arch" type="xml">
+            <tree string="Dashboards">
+                <field name="name" />
+                <field name="url" />
+                <field name="database" />
+                <field name="last_sync" />
+                <field name="show_mostrador_preparacion" />
+                <field name="show_mostrador_despachar" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!--   Lista "Tableros" con botón abrir           -->
+    <!-- ============================================ -->
+    <record id="view_remote_odoo_config_tableros_tree" model="ir.ui.view">
+        <field name="name">remote.odoo.config.tableros.tree</field>
+        <field name="model">remote.odoo.config</field>
+        <field name="arch" type="xml">
+            <tree string="Tableros activos" create="false" delete="false">
+                <field name="name" string="Tablero" />
+                <field name="url" string="Servidor" />
+                <field name="last_sync" string="Última Sync" />
+                <button name="action_open_dashboard" type="object"
+                        string="Abrir"
+                        class="btn-primary" icon="fa-tv" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!--   Acción                                     -->
+    <!-- ============================================ -->
+    <record id="action_remote_config" model="ir.actions.act_window">
+        <field name="name">Dashboards</field>
+        <field name="res_model">remote.odoo.config</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_remote_odoo_config_tree" />
+    </record>
+
+    <!-- Acción: Tableros (lista con botón abrir) -->
+    <record id="action_remote_tableros" model="ir.actions.act_window">
+        <field name="name">Tableros</field>
+        <field name="res_model">remote.odoo.config</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_remote_odoo_config_tableros_tree" />
+    </record>
+
+</odoo>

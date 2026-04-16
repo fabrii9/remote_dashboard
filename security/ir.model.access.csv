@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_remote_odoo_config,remote.odoo.config,model_remote_odoo_config,base.group_user,1,1,1,1
+access_remote_odoo_picking,remote.odoo.picking,model_remote_odoo_picking,base.group_user,1,1,1,1
+access_remote_odoo_log,remote.odoo.log,model_remote_odoo_log,base.group_user,1,1,1,1
+access_remote_odoo_move_line,remote.odoo.move.line,model_remote_odoo_move_line,base.group_user,1,1,1,1

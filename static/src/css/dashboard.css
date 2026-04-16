@@ -1,0 +1,628 @@
+/* ============================================================
+   Remote Dashboard — TV-optimized split-screen with cards
+   Designed for readability from a distance
+   ============================================================ */
+
+/* --------------- Global --------------- */
+.rd-dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #f0f2f5;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+}
+
+/* --------------- Header --------------- */
+.rd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px;
+    background: #1b2a4a;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.rd-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex: 1;
+}
+
+.rd-header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.rd-header-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.rd-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.rd-clock {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.4), 0 0 20px rgba(52,152,219,0.3);
+    font-variant-numeric: tabular-nums;
+}
+
+.rd-clock .fa {
+    margin-right: 6px;
+    font-size: 1.4rem;
+    opacity: 0.8;
+}
+
+.rd-sync-info {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+}
+
+.rd-countdown {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.1);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.rd-countdown .fa {
+    margin-right: 3px;
+    font-size: 0.7rem;
+}
+
+.rd-btn {
+    border-color: rgba(255,255,255,0.4) !important;
+    color: #fff !important;
+    font-size: 0.8rem;
+}
+
+.rd-btn:hover {
+    background: rgba(255,255,255,0.12) !important;
+}
+
+/* --------------- KPIs --------------- */
+.rd-kpis {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 6px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+
+.rd-kpi {
+    text-align: center;
+}
+
+.rd-kpi-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1b2a4a;
+}
+
+.rd-kpi-label {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* --------------- Columns container --------------- */
+.rd-columns-container {
+    display: flex;
+    flex: 1;
+    gap: 0;
+    overflow: hidden;
+}
+
+/* --------------- Column --------------- */
+.rd-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid #ddd;
+}
+
+.rd-column:last-child {
+    border-right: none;
+}
+
+/* Column header */
+.rd-column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    flex-shrink: 0;
+}
+
+.rd-column-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rd-column-count {
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-width: 36px;
+    text-align: center;
+}
+
+/* Column colors */
+.rd-column-mostrador_preparacion .rd-column-header {
+    background: linear-gradient(135deg, #e67e22, #f39c12);
+}
+.rd-column-mostrador_preparacion .rd-column-count {
+    background: rgba(0,0,0,0.25);
+    color: #fff;
+}
+
+.rd-column-mostrador_despachar .rd-column-header {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+}
+.rd-column-mostrador_despachar .rd-column-count {
+    background: rgba(0,0,0,0.25);
+    color: #fff;
+}
+
+.rd-column-en_preparacion .rd-column-header {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+}
+.rd-column-en_preparacion .rd-column-count {
+    background: rgba(0,0,0,0.2);
+    color: #fff;
+}
+
+.rd-column-despachar .rd-column-header {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+}
+.rd-column-despachar .rd-column-count {
+    background: rgba(0,0,0,0.2);
+    color: #fff;
+}
+
+/* Column body — scrollable */
+.rd-column-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 8px;
+    background: #f7f8fa;
+}
+
+/* No items */
+.rd-no-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #aaa;
+}
+
+.rd-no-items p {
+    margin: 8px 0 0;
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   CARDS — TV-optimized design
+   ============================================================ */
+
+.rd-card {
+    background: #fff;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.15s, transform 0.15s;
+    border-left: 5px solid transparent;
+}
+
+.rd-card:hover {
+    box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+    transform: translateY(-1px);
+}
+
+/* Card border colors — LEFT border only */
+.rd-card-mostrador_preparacion {
+    border-left-color: #e67e22;
+}
+
+.rd-card-mostrador_despachar {
+    border-left-color: #27ae60;
+}
+
+.rd-card-en_preparacion {
+    border-left-color: #2980b9;
+}
+
+.rd-card-despachar {
+    border-left-color: #8e44ad;
+}
+
+/* --------------- Card Top Bar --------------- */
+.rd-card-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #eee;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rd-card-topbar-left {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    min-width: 0;
+    flex: 1;
+}
+
+.rd-card-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Sale order number */
+.rd-card-so {
+    font-weight: 800;
+    font-size: 1.35rem;
+    color: #1a1a2e;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+a.rd-card-so {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a.rd-card-so:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+/* Partner name */
+.rd-card-partner {
+    font-weight: 700;
+    font-size: 1.45rem;
+    color: #444;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Tipo de pedido badge */
+.rd-tipo-pedido-badge {
+    background: #3498db;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+/* State badges */
+.rd-state-badge {
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.rd-state-assigned {
+    background: #d4edda;
+    color: #155724;
+}
+
+.rd-state-confirmed {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.rd-state-waiting {
+    background: #ffeeba;
+    color: #856404;
+}
+
+.rd-state-draft {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.rd-state-done {
+    background: #c3e6cb;
+    color: #155724;
+}
+
+.rd-state-cancel {
+    background: #f5c6cb;
+    color: #721c24;
+}
+
+/* Waiting time badge */
+.rd-waiting-badge {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    background: #e74c3c;
+    padding: 4px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.rd-waiting-badge .fa {
+    font-size: 0.75rem;
+}
+
+/* --------------- Card Body (sidebar + products) --------------- */
+.rd-card-body {
+    display: flex;
+    align-items: stretch;
+    min-height: 50px;
+}
+
+/* Left sidebar: ~15% width */
+.rd-card-sidebar {
+    flex: 0 0 15%;
+    max-width: 160px;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 8px;
+    background: #f0f2f5;
+    border-right: 2px solid #eee;
+}
+
+/* Picking number in sidebar */
+.rd-picking-number {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2980b9;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    word-break: break-all;
+}
+
+.rd-picking-number:hover {
+    color: #1a5276;
+    text-decoration: underline;
+}
+
+/* Sidebar buttons */
+.rd-sidebar-btn {
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 6px 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.rd-sidebar-btn .fa {
+    font-size: 0.8rem;
+}
+
+/* --------------- Products table --------------- */
+.rd-card-products {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 10px;
+    overflow-x: auto;
+}
+
+.rd-products-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rd-products-table th {
+    text-align: left;
+    padding: 4px 8px;
+    font-weight: 600;
+    color: #888;
+    border-bottom: 2px solid #eee;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+
+.rd-products-table td {
+    padding: 5px 8px;
+    color: #333;
+}
+
+.rd-product-name {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #1a1a2e;
+    max-width: 500px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rd-product-qty {
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.rd-product-uom {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.rd-products-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.rd-products-table tbody tr:hover {
+    background: #eef5ff;
+}
+
+/* --------------- Remote links --------------- */
+.rd-remote-link {
+    color: #2980b9;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.rd-remote-link:hover {
+    color: #1a5276;
+    text-decoration: underline;
+}
+
+/* --------------- Collapsed column --------------- */
+.rd-column[style*="flex: 0 0 50px"] .rd-column-header {
+    padding: 12px 8px;
+}
+
+.rd-column[style*="flex: 0 0 50px"] .rd-column-title {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.rd-column[style*="flex: 0 0 50px"] .rd-column-body {
+    padding: 8px 4px;
+}
+
+.rd-column[style*="flex: 0 0 50px"] .rd-no-items p {
+    display: none;
+}
+
+/* --------------- Loading & empty --------------- */
+.rd-loading, .rd-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: #999;
+    gap: 12px;
+}
+
+.rd-loading p, .rd-empty p {
+    font-size: 0.95rem;
+}
+
+/* --------------- Scrollbar styling --------------- */
+.rd-column-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rd-column-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.rd-column-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.rd-column-body::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+/* --------------- Zoom controls --------------- */
+.rd-zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 2px 4px;
+}
+
+.rd-zoom-btn {
+    color: #fff !important;
+    border: none !important;
+    background: transparent !important;
+    font-size: 0.85rem;
+    padding: 2px 8px;
+    line-height: 1;
+    border-radius: 6px;
+}
+
+.rd-zoom-btn:hover {
+    background: rgba(255,255,255,0.2) !important;
+}
+
+.rd-zoom-label {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 36px;
+    text-align: center;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+
+.rd-zoom-label:hover {
+    color: #fff;
+}
+
+/* --------------- Zoomable wrapper --------------- */
+.rd-zoomable {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* --------------- Responsive --------------- */
+@media (max-width: 900px) {
+    .rd-columns-container {
+        flex-direction: column;
+    }
+    .rd-column {
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        max-height: 50vh;
+    }
+}
