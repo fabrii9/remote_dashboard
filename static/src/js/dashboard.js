@@ -33,7 +33,7 @@ export class RemoteDashboard extends Component {
         this._countdownInterval = null;
         this._syncInterval = null;
         this.REFRESH_SECONDS = 15;
-        this.SYNC_SECONDS = 60;
+        this.SYNC_SECONDS = 15;
 
         const params = this.props.action?.params || {};
         this.configId = params.config_id || false;
