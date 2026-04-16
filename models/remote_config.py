@@ -60,7 +60,16 @@ BUNDLE_MAP = {
     "TTU0051": 4, "TTU0053": 4, "TTU0054": 4,
     "TTU0055": 3, "TTU0056": 3, "TTU0057": 2,
     "TTU0052": 4, "TTU0060": 2, "TTU0061": 2, "TTU0062": 2,
+    "BVB01": 5, "BV05": 5, "TTU0153": 4, "TTU0154": 4,
+    "TTU0151": 2, "TTU0150": 4, "TTU0149": 4, "TTU0152": 2, "TTU0104": 3,
 }
+
+CATEGORY_IDS = [
+    125, 198, 183, 223, 224, 210, 209, 202, 203, 204, 205, 218, 206, 207,
+    180, 156, 225, 157, 214, 174, 217, 212, 213, 211, 149, 150, 244, 245,
+    243, 246, 242, 176, 175, 148, 177, 178, 222, 221, 136, 109, 124, 123,
+    134, 208,
+]
 
 
 class RemoteOdooConfig(models.Model):
@@ -669,19 +678,24 @@ class RemoteOdooConfig(models.Model):
                         for m in moves if m.get('product_id')
                     })
                     _product_code_map = {}
+                    _product_categ_map = {}
                     if _product_ids:
                         try:
                             _prods = self._execute_kw(
                                 'product.product', 'read',
                                 args=[_product_ids],
-                                kwargs={'fields': ['default_code']},
+                                kwargs={'fields': ['default_code', 'categ_id']},
                             ) or []
                             _product_code_map = {
                                 p['id']: p.get('default_code') or ''
                                 for p in _prods
                             }
+                            _product_categ_map = {
+                                p['id']: p['categ_id'][0] if p.get('categ_id') else 0
+                                for p in _prods
+                            }
                         except Exception:
-                            _logger.info("Could not fetch product default_code")
+                            _logger.info("Could not fetch product default_code/categ_id")
                     for m in moves:
                         pid = m['picking_id'][0] if m.get('picking_id') else False
                         if pid:
@@ -700,6 +714,7 @@ class RemoteOdooConfig(models.Model):
                                 'quantity_done': qty_done,
                                 'product_uom': uom_name,
                                 'default_code': _product_code_map.get(_prod_id, ''),
+                                'product_categ_id': _product_categ_map.get(_prod_id, 0),
                             })
                 except Exception:
                     _logger.exception("Error al obtener stock.move para Mostrador")
@@ -856,6 +871,7 @@ class RemoteOdooConfig(models.Model):
                     'quantity_done': line.get('quantity_done') or 0,
                     'product_uom': line.get('product_uom') or '',
                     'default_code': line.get('default_code') or '',
+                    'product_categ_id': line.get('product_categ_id') or 0,
                 })
         if ml_vals:
             MoveLine.create(ml_vals)
@@ -899,18 +915,23 @@ class RemoteOdooConfig(models.Model):
             m['product_id'][0] for m in moves if m.get('product_id')
         })
         product_code_map = {}
+        product_categ_map = {}
         if product_ids:
             try:
                 prods = self._execute_kw(
                     'product.product', 'read',
                     args=[product_ids],
-                    kwargs={'fields': ['default_code']},
+                    kwargs={'fields': ['default_code', 'categ_id']},
                 ) or []
                 product_code_map = {
                     p['id']: p.get('default_code') or '' for p in prods
                 }
+                product_categ_map = {
+                    p['id']: p['categ_id'][0] if p.get('categ_id') else 0
+                    for p in prods
+                }
             except Exception:
-                _logger.info("Could not fetch product default_code on demand")
+                _logger.info("Could not fetch product default_code/categ_id on demand")
 
         vals_list = []
         for m in moves:
@@ -930,6 +951,7 @@ class RemoteOdooConfig(models.Model):
                 'quantity_done': m.get('quantity', m.get('quantity_done', 0)),
                 'product_uom': uom_name,
                 'default_code': product_code_map.get(prod_id, ''),
+                'product_categ_id': product_categ_map.get(prod_id, 0),
             })
 
         if vals_list:
@@ -957,18 +979,64 @@ class RemoteOdooConfig(models.Model):
         return ''
 
     def _generate_zpl_simple(self, picking, move_lines):
-        """One label per product line, all products."""
-        labels = []
-        for ml in move_lines:
-            labels.append({
-                'product_name': ml.product_name or '',
-                'qty': ml.product_qty,
-                'div_idx': 1,
-                'total_div': 1,
-            })
-        if not labels:
+        """One label per move line filtered by CATEGORY_IDS (telas a cortar)."""
+        telas = [
+            ml for ml in move_lines
+            if ml.product_categ_id in CATEGORY_IDS
+        ]
+        if not telas:
             return ''
-        return self._render_zpl_labels(picking, labels)
+
+        total_telas = len(telas)
+        pedido = picking.origin or picking.name or ''
+        cliente = picking.partner_name or ''
+        logo_zpl = (self.zpl_logo or '').strip()
+
+        zpl_parts = []
+        for idx, ml in enumerate(telas, 1):
+            part = (
+                "^XA\n"
+                "^CI28\n"
+                "^PW1500\n"
+                "^LL1000\n"
+                "\n"
+                "^FO70,50\n"
+                "^A0R,35,35^FDTelas a cortar: %s/%s^FS\n"
+                "\n"
+                "^FO150,50\n"
+                "^GB4,1100,4^FS\n"
+                "\n"
+                "^FO300,50\n"
+                "^A0R,45,45^FDA cortar: %s mts^FS\n"
+                "\n"
+                "^FO400,50\n"
+                "^A0R,40,40^FD%s^FS\n"
+                "\n"
+                "^FO500,50\n"
+                "^A0R,45,45^FDProducto:^FS\n"
+                "\n"
+                "^FO600,50\n"
+                "^GB4,1100,4^FS\n"
+                "\n"
+                "^FO620,50\n"
+                "^A0R,60,60^FDPedido: %s^FS\n"
+                "\n"
+                "^FO690,50\n"
+                "^A0R,60,60^FD%s^FS\n"
+            ) % (
+                idx, total_telas,
+                int(ml.product_qty) if ml.product_qty == int(ml.product_qty) else ml.product_qty,
+                ml.product_name or '',
+                pedido, cliente,
+            )
+
+            if logo_zpl:
+                part += "\n" + logo_zpl + "\n"
+
+            part += "\n^XZ"
+            zpl_parts.append(part)
+
+        return "\n".join(zpl_parts)
 
     def _generate_zpl_bundle(self, picking, move_lines):
         """Labels using BUNDLE_MAP with even distribution."""

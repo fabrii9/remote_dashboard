@@ -13,6 +13,7 @@ class RemoteOdooMoveLine(models.Model):
     picking_remote_id = fields.Integer(string='ID Picking Remoto', index=True)
     product_name = fields.Char(string='Producto')
     default_code = fields.Char(string='Referencia Interna')
+    product_categ_id = fields.Integer(string='ID Categoría Producto')
     product_qty = fields.Float(string='Cantidad Demandada')
     quantity_done = fields.Float(string='Cantidad Hecha')
     product_uom = fields.Char(string='UdM')
