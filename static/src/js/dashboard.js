@@ -20,7 +20,6 @@ export class RemoteDashboard extends Component {
             currentTime: "",
             visibleColumns: [],
             columns: {},
-            kpis: null,
             expandedCards: {},
             refreshCountdown: 15,
             zoomLevel: 100,
@@ -69,20 +68,12 @@ export class RemoteDashboard extends Component {
 
     async loadDashboard() {
         try {
-            const [data, kpis] = await Promise.all([
-                this.rpc("/web/dataset/call_kw", {
-                    model: "remote.odoo.config",
-                    method: "get_dashboard_data",
-                    args: [this.configId],
-                    kwargs: {},
-                }),
-                this.rpc("/web/dataset/call_kw", {
-                    model: "remote.odoo.config",
-                    method: "get_dashboard_kpis",
-                    args: [this.configId],
-                    kwargs: {},
-                }),
-            ]);
+            const data = await this.rpc("/web/dataset/call_kw", {
+                model: "remote.odoo.config",
+                method: "get_dashboard_data",
+                args: [this.configId],
+                kwargs: {},
+            });
 
             this.state.configured = data.configured;
             if (data.configured) {
@@ -96,7 +87,6 @@ export class RemoteDashboard extends Component {
                 this.state.hasZplPrinter = data.has_zpl_printer || false;
                 this.state.hasRicohPrinter = data.has_ricoh_printer || false;
             }
-            this.state.kpis = kpis || null;
         } catch (e) {
             console.error("Dashboard load error:", e);
         }

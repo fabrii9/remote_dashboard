@@ -40,22 +40,6 @@
             <!-- Zoomable content area -->
             <div class="rd-zoomable" t-att-style="'zoom: ' + (state.zoomLevel / 100)">
 
-            <!-- KPIs -->
-            <div class="rd-kpis" t-if="state.kpis">
-                <div class="rd-kpi">
-                    <div class="rd-kpi-value" t-esc="state.kpis.new_today || 0" />
-                    <div class="rd-kpi-label">Nuevos hoy</div>
-                </div>
-                <div class="rd-kpi">
-                    <div class="rd-kpi-value" t-esc="state.kpis.completed_today || 0" />
-                    <div class="rd-kpi-label">Completados hoy</div>
-                </div>
-                <div class="rd-kpi">
-                    <div class="rd-kpi-value" t-esc="state.kpis.state_changes_today || 0" />
-                    <div class="rd-kpi-label">Cambios de estado</div>
-                </div>
-            </div>
-
             <!-- Loading -->
             <div class="rd-loading" t-if="state.loading and !state.configured">
                 <i class="fa fa-spinner fa-spin fa-3x" />
