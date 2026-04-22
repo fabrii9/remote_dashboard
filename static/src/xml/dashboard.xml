@@ -128,8 +128,14 @@
                                             <a class="rd-picking-number rd-remote-link" t-on-click="(ev) => this.openRemotePicking(ev, picking.remote_id)" t-att-title="'Abrir picking: ' + picking.name">
                                                 <t t-esc="picking.name" />
                                             </a>
-                                            <button class="btn btn-sm btn-outline-secondary rd-sidebar-btn" t-on-click="(ev) => this.onPrintPicking(ev, picking.remote_id)" title="Imprimir PDF">
+                                            <button class="btn btn-sm btn-outline-secondary rd-sidebar-btn" t-on-click="(ev) => this.onPrintPicking(ev, picking.remote_id)" title="Imprimir PDF (nueva pestaña)">
                                                 <i class="fa fa-print" />
+                                            </button>
+                                            <button t-if="state.hasRicohPrinter"
+                                                    class="btn btn-sm btn-primary rd-sidebar-btn"
+                                                    t-on-click="(ev) => this.onPrintRicoh(ev, picking.remote_id)"
+                                                    title="Imprimir en Ricoh (TCP RAW)">
+                                                <i class="fa fa-send" />
                                             </button>
                                             <button t-if="state.zplLabelMode !== 'none' and state.hasZplPrinter"
                                                     class="btn btn-sm btn-warning rd-sidebar-btn"

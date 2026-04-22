@@ -214,6 +214,29 @@ class RemoteOdooConfig(models.Model):
         help='Código GFA del logo para incluir en la etiqueta (^FO...^GFA,...^FS)',
     )
 
+    # ---- Impresora PDF Ricoh (RAW TCP) ----
+    enable_ricoh_print = fields.Boolean(
+        string='Habilitar impresión por red (Ricoh)',
+        default=False,
+        help='Cuando está activo, permite enviar el PDF del picking directamente '
+             'a la impresora Ricoh por socket TCP RAW.',
+    )
+    ricoh_host = fields.Char(
+        string='Host / IP de la impresora',
+        help='Nombre de host o IP pública de la impresora (ej: aa890aa70c96.sn.mynetname.net).',
+    )
+    ricoh_port = fields.Integer(
+        string='Puerto TCP',
+        default=4000,
+        help='Puerto RAW de la impresora (generalmente 9100 en red local, '
+             'o el puerto público configurado en el router).',
+    )
+    ricoh_timeout = fields.Float(
+        string='Timeout (seg)',
+        default=10.0,
+        help='Tiempo máximo de espera para la conexión TCP.',
+    )
+
     # -------------------------------------------------------------------------
     # Helpers
     # -------------------------------------------------------------------------
@@ -350,6 +373,37 @@ class RemoteOdooConfig(models.Model):
             'params': {
                 'title': _('Conexión exitosa'),
                 'message': _('Conectado — UID remoto: %s') % uid,
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    def test_ricoh_connection(self):
+        """Prueba la conexión TCP RAW a la impresora Ricoh."""
+        import socket
+        self.ensure_one()
+        if not self.ricoh_host or not self.ricoh_port:
+            raise UserError(_('Configure el host y el puerto de la impresora primero.'))
+        try:
+            with socket.create_connection(
+                (self.ricoh_host, int(self.ricoh_port)),
+                timeout=float(self.ricoh_timeout or 10.0),
+            ):
+                pass
+        except Exception as e:
+            raise UserError(
+                _('No se pudo conectar a %s:%s — %s') % (
+                    self.ricoh_host, self.ricoh_port, str(e)
+                )
+            )
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Impresora alcanzable'),
+                'message': _('Conexión TCP a %s:%s establecida correctamente.') % (
+                    self.ricoh_host, self.ricoh_port,
+                ),
                 'type': 'success',
                 'sticky': False,
             },
@@ -1202,6 +1256,104 @@ class RemoteOdooConfig(models.Model):
         return '/web/content/%s?download=false' % attachment.id
 
     # -------------------------------------------------------------------------
+    # Impresión RAW TCP (Ricoh)
+    # -------------------------------------------------------------------------
+
+    def _download_picking_pdf(self, remote_id):
+        """Descarga el PDF del picking desde el Odoo remoto usando sesión HTTP."""
+        import urllib.request
+        import http.cookiejar
+        import json
+
+        url = self.url.rstrip('/')
+        ctx = self._get_ssl_context()
+
+        cookie_jar = http.cookiejar.CookieJar()
+        ssl_handler = urllib.request.HTTPSHandler(context=ctx)
+        opener = urllib.request.build_opener(
+            urllib.request.HTTPCookieProcessor(cookie_jar),
+            ssl_handler,
+        )
+
+        # Autenticar vía JSON-RPC session
+        auth_payload = json.dumps({
+            'jsonrpc': '2.0',
+            'method': 'call',
+            'id': 1,
+            'params': {
+                'db': self.database,
+                'login': self.username,
+                'password': self.password,
+            },
+        }).encode('utf-8')
+
+        auth_req = urllib.request.Request(
+            f'{url}/web/session/authenticate',
+            data=auth_payload,
+            headers={'Content-Type': 'application/json'},
+        )
+        try:
+            with opener.open(auth_req, timeout=30) as resp:
+                auth_result = json.loads(resp.read())
+        except Exception as e:
+            raise UserError(_('No se pudo autenticar para descargar el PDF: %s') % str(e))
+
+        uid = (auth_result.get('result') or {}).get('uid')
+        if not uid:
+            raise UserError(_('Autenticación HTTP fallida al intentar descargar el PDF.'))
+
+        # Descargar el PDF
+        pdf_url = f'{url}/report/pdf/stock.report_picking/{remote_id}'
+        pdf_req = urllib.request.Request(pdf_url)
+        try:
+            with opener.open(pdf_req, timeout=60) as resp:
+                pdf_data = resp.read()
+        except Exception as e:
+            raise UserError(_('No se pudo descargar el PDF del picking: %s') % str(e))
+
+        if not pdf_data:
+            raise UserError(_('El PDF descargado está vacío.'))
+        return pdf_data
+
+    @staticmethod
+    def _send_raw_tcp(data, host, port, timeout=10.0):
+        """Envía bytes crudos a una impresora por socket TCP RAW."""
+        import socket
+        with socket.create_connection((host, int(port)), timeout=float(timeout)) as sock:
+            sock.sendall(data)
+            try:
+                sock.shutdown(socket.SHUT_WR)
+            except OSError:
+                pass
+            try:
+                sock.recv(1024)
+            except Exception:
+                pass
+
+    @api.model
+    def print_picking_ricoh(self, config_id, remote_id):
+        """Descarga el PDF del picking y lo envía a la impresora Ricoh por TCP RAW."""
+        config = self.sudo().browse(config_id)
+        if not config.exists():
+            raise UserError(_('Configuración no encontrada.'))
+        if not config.enable_ricoh_print:
+            raise UserError(_('La impresión por red no está habilitada en esta configuración.'))
+        if not config.ricoh_host or not config.ricoh_port:
+            raise UserError(_('Configure el host y el puerto de la impresora Ricoh.'))
+
+        pdf_data = config._download_picking_pdf(remote_id)
+        try:
+            config._send_raw_tcp(
+                pdf_data,
+                config.ricoh_host,
+                config.ricoh_port,
+                timeout=config.ricoh_timeout or 10.0,
+            )
+        except Exception as e:
+            raise UserError(_('Error al enviar el PDF a la impresora: %s') % str(e))
+        return True
+
+    # -------------------------------------------------------------------------
     # API para el dashboard JS
     # -------------------------------------------------------------------------
 
@@ -1299,6 +1451,9 @@ class RemoteOdooConfig(models.Model):
             'columns': columns,
             'zpl_label_mode': config.zpl_label_mode or 'none',
             'has_zpl_printer': bool(config.zpl_printer_url and config.zpl_printer_token),
+            'has_ricoh_printer': bool(
+                config.enable_ricoh_print and config.ricoh_host and config.ricoh_port
+            ),
         }
 
     @api.model

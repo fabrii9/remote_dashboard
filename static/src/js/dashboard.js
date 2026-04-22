@@ -26,6 +26,7 @@ export class RemoteDashboard extends Component {
             zoomLevel: 100,
             zplLabelMode: "none",
             hasZplPrinter: false,
+            hasRicohPrinter: false,
         });
 
         this._refreshInterval = null;
@@ -93,6 +94,7 @@ export class RemoteDashboard extends Component {
                 this.configId = data.config_id;
                 this.state.zplLabelMode = data.zpl_label_mode || "none";
                 this.state.hasZplPrinter = data.has_zpl_printer || false;
+                this.state.hasRicohPrinter = data.has_ricoh_printer || false;
             }
             this.state.kpis = kpis || null;
         } catch (e) {
@@ -197,6 +199,22 @@ export class RemoteDashboard extends Component {
                 `${this.state.remoteUrl}/report/pdf/stock.report_picking/${remoteId}`,
                 "_blank"
             );
+        }
+    }
+
+    async onPrintRicoh(ev, remoteId) {
+        ev.stopPropagation();
+        if (!confirm("¿Enviar el PDF de este picking a la impresora Ricoh?")) return;
+        try {
+            await this.rpc("/web/dataset/call_kw", {
+                model: "remote.odoo.config",
+                method: "print_picking_ricoh",
+                args: [this.configId, remoteId],
+                kwargs: {},
+            });
+            this.notification.add("PDF enviado a la impresora", { type: "success" });
+        } catch (e) {
+            this.notification.add("Error al imprimir: " + (e.message || e), { type: "danger" });
         }
     }
 

@@ -146,6 +146,39 @@
                                 </ul>
                             </div>
                         </page>
+
+                        <page string="Impresora PDF (Ricoh)" name="ricoh">
+                            <group>
+                                <group string="Activación">
+                                    <field name="enable_ricoh_print" />
+                                </group>
+                            </group>
+                            <group attrs="{'invisible': [('enable_ricoh_print', '=', False)]}">
+                                <group string="Conexión TCP">
+                                    <field name="ricoh_host"
+                                           placeholder="ej: aa890aa70c96.sn.mynetname.net"
+                                           attrs="{'required': [('enable_ricoh_print', '=', True)]}" />
+                                    <field name="ricoh_port"
+                                           attrs="{'required': [('enable_ricoh_print', '=', True)]}" />
+                                    <field name="ricoh_timeout" />
+                                </group>
+                                <group string="Prueba">
+                                    <button name="test_ricoh_connection" type="object"
+                                            string="Probar conexión TCP"
+                                            class="btn-secondary" icon="fa-plug" />
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert"
+                                 attrs="{'invisible': [('enable_ricoh_print', '=', False)]}">
+                                <i class="fa fa-info-circle" />
+                                <strong> Cómo funciona:</strong>
+                                <p>Al presionar el botón <i class="fa fa-print" />
+                                   <strong> Imprimir en Ricoh</strong> en el dashboard,
+                                   el servidor descarga el PDF del picking desde el Odoo remoto
+                                   y lo envía directamente a la impresora por socket TCP RAW.</p>
+                                <p>Asegúrese de que el host y puerto sean accesibles desde este servidor Odoo.</p>
+                            </div>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
