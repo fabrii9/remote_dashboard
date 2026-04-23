@@ -515,19 +515,6 @@ class RemoteOdooConfig(models.Model):
         """Descarga pickings del Odoo remoto y actualiza la caché local."""
         self.ensure_one()
 
-        # Advisory lock por config: evita que cron y sync manual corran
-        # en simultáneo sobre el mismo dashboard y generen concurrent delete.
-        # pg_try_advisory_xact_lock retorna False si ya está tomado → salimos.
-        lock_key = 0x7D4A0000 + (self.id & 0xFFFF)
-        self.env.cr.execute('SELECT pg_try_advisory_xact_lock(%s)', [lock_key])
-        locked = self.env.cr.fetchone()[0]
-        if not locked:
-            _logger.info(
-                "Sync [%s] omitido: ya hay una sincronización en curso.",
-                self.name,
-            )
-            return
-
         Picking = self.env['remote.odoo.picking'].sudo()
         MoveLine = self.env['remote.odoo.move.line'].sudo()
         remote_fields = [
