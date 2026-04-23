@@ -31,9 +31,7 @@ export class RemoteDashboard extends Component {
         this._refreshInterval = null;
         this._clockInterval = null;
         this._countdownInterval = null;
-        this._syncInterval = null;
         this.REFRESH_SECONDS = 15;
-        this.SYNC_SECONDS = 15;
 
         const params = this.props.action?.params || {};
         this.configId = params.config_id || false;
@@ -52,17 +50,12 @@ export class RemoteDashboard extends Component {
                     this.state.refreshCountdown--;
                 }
             }, 1000);
-            // Auto-sync from remote every SYNC_SECONDS
-            this._syncInterval = setInterval(() => this._autoSync(), this.SYNC_SECONDS * 1000);
-            // Also trigger first sync shortly after mount
-            setTimeout(() => this._autoSync(), 3000);
         });
 
         onWillUnmount(() => {
             if (this._refreshInterval) clearInterval(this._refreshInterval);
             if (this._clockInterval) clearInterval(this._clockInterval);
             if (this._countdownInterval) clearInterval(this._countdownInterval);
-            if (this._syncInterval) clearInterval(this._syncInterval);
         });
     }
 
@@ -114,21 +107,6 @@ export class RemoteDashboard extends Component {
             this.notification.add("Error al sincronizar: " + (e.message || e), { type: "danger" });
         }
         this.state.syncing = false;
-    }
-
-    async _autoSync() {
-        // Silent background sync — no toasts, no loading spinners
-        try {
-            await this.rpc("/web/dataset/call_kw", {
-                model: "remote.odoo.config",
-                method: "action_sync_pickings",
-                args: [this.configId],
-                kwargs: {},
-            });
-            await this.loadDashboard();
-        } catch (e) {
-            console.warn("Auto-sync error:", e);
-        }
     }
 
     getColumnLabel(colKey) {

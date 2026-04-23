@@ -1492,7 +1492,8 @@ class RemoteOdooConfig(models.Model):
     def cron_sync_all(self):
         for config in self.sudo().search([]):
             try:
-                config.sync_pickings()
+                with self.env.cr.savepoint():
+                    config.sync_pickings()
             except Exception:
                 _logger.exception("Error syncing dashboard '%s'", config.name)
 
