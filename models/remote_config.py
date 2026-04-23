@@ -515,6 +515,20 @@ class RemoteOdooConfig(models.Model):
         """Descarga pickings del Odoo remoto y actualiza la caché local."""
         self.ensure_one()
 
+        # Mutex por fila: si otra transacción (cron o sync manual) ya tiene
+        # bloqueado este config, SKIP LOCKED devuelve 0 filas y salimos.
+        # Esto evita concurrent delete/update sin advisory locks.
+        self.env.cr.execute(
+            'SELECT id FROM remote_odoo_config WHERE id = %s FOR UPDATE SKIP LOCKED',
+            [self.id],
+        )
+        if not self.env.cr.fetchone():
+            _logger.info(
+                "Sync [%s] omitido: otro proceso ya está sincronizando este dashboard.",
+                self.name,
+            )
+            return
+
         Picking = self.env['remote.odoo.picking'].sudo()
         MoveLine = self.env['remote.odoo.move.line'].sudo()
         remote_fields = [
@@ -931,7 +945,15 @@ class RemoteOdooConfig(models.Model):
         if ml_vals:
             MoveLine.create(ml_vals)
 
-        self.sudo().write({'last_sync': fields.Datetime.now()})
+        # Escribir last_sync directo por SQL para evitar que el ORM
+        # encole un write diferido que ir_cron flushea fuera de contexto
+        # y genera SerializationFailure -> rollback de toda la caché.
+        self.env.cr.execute(
+            "UPDATE remote_odoo_config SET last_sync = NOW() AT TIME ZONE 'UTC',"
+            " write_date = NOW() AT TIME ZONE 'UTC' WHERE id = %s",
+            [self.id],
+        )
+        self.invalidate_recordset(['last_sync'])
         _logger.info(
             "Sync [%s] OK — Prep: %d | Desp: %d | Most-Prep: %d | Most-Desp: %d",
             self.name, len(en_prep), len(despachar),
