@@ -68,27 +68,43 @@
 
                         <page string="Filtro por Estados" name="states">
                             <group>
-                                <group>
+                                <group string="Estados principales">
                                     <button name="action_fetch_states" type="object"
                                             string="Obtener Estados del Remoto"
                                             class="btn-primary" icon="fa-download" />
                                     <field name="available_states" readonly="1"
                                            widget="text" placeholder="Presione el botón para cargar..." />
                                 </group>
-                                <group>
+                                <group string="Filtrar columnas por estado">
                                     <field name="mostrador_prep_states"
                                            placeholder="ej: assigned, confirmed" />
                                     <field name="mostrador_despachar_states"
                                            placeholder="ej: assigned" />
                                 </group>
                             </group>
+                            <group>
+                                <group string="Sub-estados (state_detail_id)">
+                                    <button name="action_fetch_sub_states" type="object"
+                                            string="Obtener Sub-estados del Remoto"
+                                            class="btn-primary" icon="fa-download" />
+                                    <field name="available_sub_states" readonly="1"
+                                           widget="text" placeholder="Presione el botón para cargar..." />
+                                </group>
+                                <group string="Filtrar columnas por sub-estado">
+                                    <field name="mostrador_prep_sub_states"
+                                           placeholder="ej: Listo para preparar, Preparando" />
+                                    <field name="mostrador_despachar_sub_states"
+                                           placeholder="ej: Listo para Entregar" />
+                                </group>
+                            </group>
                             <div class="alert alert-info" role="alert">
                                 <i class="fa fa-info-circle" />
                                 <strong> Ayuda:</strong>
-                                Primero presione <em>"Obtener Estados del Remoto"</em> para ver los estados disponibles.
-                                Luego copie los nombres técnicos (ej: <code>assigned</code>, <code>confirmed</code>)
-                                separados por coma en los campos de filtro de cada columna.
-                                Dejar vacío muestra todos los estados excepto <code>done</code> y <code>cancel</code>.
+                                <ul>
+                                    <li>Presione <em>"Obtener Estados"</em> para ver los estados principales (ej: <code>assigned</code>) y copie los que quiera mostrar en el campo de filtro correspondiente.</li>
+                                    <li>Presione <em>"Obtener Sub-estados"</em> para ver los sub-estados disponibles (ej: <code>Listo para Entregar</code>) y copie los nombres <strong>exactos</strong> separados por coma.</li>
+                                    <li>Dejar un campo vacío = sin filtro para esa dimensión.</li>
+                                </ul>
                             </div>
                         </page>
 

@@ -158,6 +158,25 @@ class RemoteOdooConfig(models.Model):
         help='Estados encontrados en el remoto (cargados con el botón).',
     )
 
+    # ---- Filtro por sub-estados (state_detail_id) ----
+    mostrador_prep_sub_states = fields.Char(
+        string='Sub-estados col. Preparación',
+        default='',
+        help='Sub-estados a mostrar en "En Preparación" separados por coma '
+             '(ej: Listo para preparar, Preparando). Vacío = sin filtro por sub-estado.',
+    )
+    mostrador_despachar_sub_states = fields.Char(
+        string='Sub-estados col. Despachar',
+        default='',
+        help='Sub-estados a mostrar en "Listo para Entregar" separados por coma '
+             '(ej: Listo para Entregar). Vacío = sin filtro por sub-estado.',
+    )
+    available_sub_states = fields.Text(
+        string='Sub-estados disponibles',
+        readonly=True,
+        help='Sub-estados encontrados en el remoto (cargados con el botón).',
+    )
+
     # ---- Filtro x_Tipo_Pedido ----
     x_tipo_pedido_filter = fields.Char(
         string='Tipo de Pedido',
@@ -467,6 +486,47 @@ class RemoteOdooConfig(models.Model):
             },
         }
 
+    def action_fetch_sub_states(self):
+        """Consulta los sub-estados únicos (state_detail_id) de stock.picking en el remoto."""
+        self.ensure_one()
+        if not self.remote_uid:
+            self._authenticate()
+        most_ids = self._parse_ids(self.mostrador_picking_type_ids)
+        most_prep_ids = self._parse_ids(self.mostrador_prep_picking_type_ids)
+        all_type_ids = most_ids + most_prep_ids
+
+        try:
+            domain = [('picking_type_id', 'in', all_type_ids)] if all_type_ids else []
+            domain += [('state', 'not in', ['done', 'cancel'])]
+            pickings = self._execute_kw(
+                'stock.picking', 'search_read',
+                args=[domain],
+                kwargs={'fields': ['state_detail_id'], 'limit': 3000},
+            ) or []
+            nombres = sorted(set(
+                p['state_detail_id'][1]
+                for p in pickings
+                if p.get('state_detail_id')
+            ))
+            self.sudo().write({
+                'available_sub_states': ', '.join(nombres) if nombres else 'No se encontraron sub-estados',
+            })
+        except Exception as e:
+            raise UserError(_('Error al obtener sub-estados: %s') % str(e))
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Sub-estados obtenidos'),
+                'message': _('Se encontraron %d sub-estados: %s') % (
+                    len(nombres), ', '.join(nombres) if nombres else '(ninguno)'
+                ),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
     def action_fetch_tipo_pedido(self):
         """Consulta los valores únicos de x_Tipo_Pedido en stock.picking del remoto."""
         self.ensure_one()
@@ -545,6 +605,8 @@ class RemoteOdooConfig(models.Model):
         # Estados filtrados
         prep_states = self._parse_states(self.mostrador_prep_states)
         desp_states = self._parse_states(self.mostrador_despachar_states)
+        prep_sub_states = self._parse_states(self.mostrador_prep_sub_states)
+        desp_sub_states = self._parse_states(self.mostrador_despachar_sub_states)
 
         filter_domain = self._get_remote_filter_domain()
 
@@ -725,6 +787,18 @@ class RemoteOdooConfig(models.Model):
                 except Exception:
                     has_state_detail = False
                     _logger.info("Campo state_detail_id no disponible")
+
+            # Aplicar filtro de sub-estados (post-fetch, usando state_detail_map)
+            if prep_sub_states and state_detail_map:
+                mostrador_preparacion = [
+                    p for p in mostrador_preparacion
+                    if state_detail_map.get(p['id'], '') in prep_sub_states
+                ]
+            if desp_sub_states and state_detail_map:
+                mostrador_despachar = [
+                    p for p in mostrador_despachar
+                    if state_detail_map.get(p['id'], '') in desp_sub_states
+                ]
 
             # Líneas de movimiento (stock.move) para Mostrador
             mostrador_move_lines = {}
