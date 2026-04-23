@@ -1410,6 +1410,13 @@ class RemoteOdooConfig(models.Model):
 
         if not pdf_data:
             raise UserError(_('El PDF descargado está vacío.'))
+        if not pdf_data.startswith(b'%PDF'):
+            raise UserError(_(
+                'El contenido descargado no es un PDF válido (no comienza con %%PDF). '
+                'Verifique que el usuario remoto tenga permisos para generar el reporte '
+                'y que la URL del servidor sea correcta.\n'
+                'Primeros bytes recibidos: %s'
+            ) % repr(pdf_data[:80]))
         return pdf_data
 
     @staticmethod
