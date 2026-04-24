@@ -288,6 +288,24 @@ class RemoteOdooConfig(models.Model):
                 return func(*args)
             except xmlrpc.client.Fault:
                 raise
+            except xmlrpc.client.ProtocolError as e:
+                if attempt == retries - 1:
+                    raise
+                if e.errcode == 429:
+                    # Rate-limited: esperar más tiempo antes de reintentar
+                    delay = 30.0 * (attempt + 1) + random.uniform(0, 2.0)
+                    _logger.warning(
+                        "Rate limited (429) por el servidor remoto "
+                        "(intento %d/%d), reintentando en %.1fs",
+                        attempt + 1, retries, delay,
+                    )
+                else:
+                    delay = base_delay * (2 ** attempt) + random.uniform(0, 0.5)
+                    _logger.warning(
+                        "Remote API call failed (attempt %d/%d), retrying in %.1fs: %s",
+                        attempt + 1, retries, delay, str(e),
+                    )
+                time.sleep(delay)
             except Exception as e:
                 if attempt == retries - 1:
                     raise
