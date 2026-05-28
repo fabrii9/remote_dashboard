@@ -48,6 +48,12 @@
                                     <field name="show_en_preparacion" />
                                     <field name="show_despachar" />
                                 </group>
+                                <group string="Modo Compacto por Columna">
+                                    <field name="hide_client_and_products_mostrador_preparacion" />
+                                    <field name="hide_client_and_products_mostrador_despachar" />
+                                    <field name="hide_client_and_products_en_preparacion" />
+                                    <field name="hide_client_and_products_despachar" />
+                                </group>
                                 <group string="IDs de Tipos de Operación">
                                     <field name="mostrador_picking_type_ids"
                                            placeholder="ej: 251" />

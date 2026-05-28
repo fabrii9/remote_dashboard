@@ -210,6 +210,28 @@ class RemoteOdooConfig(models.Model):
     verify_ssl = fields.Boolean(string='Verificar SSL', default=True)
     max_retries = fields.Integer(string='Reintentos máximos', default=5)
 
+    # ---- Modo compacto por columna (oculta cliente y productos) ----
+    hide_client_and_products_en_preparacion = fields.Boolean(
+        string='Compacto En Preparación',
+        default=False,
+        help='Oculta el nombre del cliente y el desglose de productos en esta columna.',
+    )
+    hide_client_and_products_despachar = fields.Boolean(
+        string='Compacto Despachar',
+        default=False,
+        help='Oculta el nombre del cliente y el desglose de productos en esta columna.',
+    )
+    hide_client_and_products_mostrador_preparacion = fields.Boolean(
+        string='Compacto Mostrador Prep.',
+        default=False,
+        help='Oculta el nombre del cliente y el desglose de productos en esta columna.',
+    )
+    hide_client_and_products_mostrador_despachar = fields.Boolean(
+        string='Compacto Mostrador Desp.',
+        default=False,
+        help='Oculta el nombre del cliente y el desglose de productos en esta columna.',
+    )
+
     # ---- Etiquetas ZPL ----
     zpl_label_mode = fields.Selection(
         [
@@ -1541,7 +1563,13 @@ class RemoteOdooConfig(models.Model):
 
         columns = {}
         for col_key, items in buckets.items():
-            columns[col_key] = {'items': items, 'label': column_labels.get(col_key, col_key)}
+            columns[col_key] = {
+                'items': items,
+                'label': column_labels.get(col_key, col_key),
+                'hide_client_and_products': getattr(
+                    config, f'hide_client_and_products_{col_key}', False
+                ),
+            }
 
         return {
             'configured': True,

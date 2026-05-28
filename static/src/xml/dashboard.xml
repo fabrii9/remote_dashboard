@@ -87,7 +87,7 @@
                                                 <t t-esc="picking.origin" />
                                             </span>
 
-                                            <span class="rd-card-partner" t-if="picking.partner_name">
+                                            <span class="rd-card-partner" t-if="picking.partner_name and !state.columns[colKey].hide_client_and_products">
                                                 <t t-esc="picking.partner_name" />
                                             </span>
                                         </div>
@@ -139,7 +139,7 @@
                                         </div>
 
                                         <!-- Right: product lines -->
-                                        <div class="rd-card-products" t-if="picking.move_lines and picking.move_lines.length">
+                                        <div class="rd-card-products" t-if="picking.move_lines and picking.move_lines.length and !state.columns[colKey].hide_client_and_products">
                                             <table class="rd-products-table">
                                                 <thead>
                                                     <tr>
