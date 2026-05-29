@@ -756,34 +756,41 @@ class RemoteOdooConfig(models.Model):
                 ) or []
 
                 if most_prep_ids and mostrador_out_all:
-                    group_ids = list({
-                        p['group_id'][0]
-                        for p in mostrador_out_all
-                        if p.get('group_id')
-                    })
-                    groups_with_pending = set()
-                    if group_ids:
-                        pending_preps = self._execute_kw(
-                            'stock.picking', 'search_read',
-                            args=[[
-                                ('group_id', 'in', group_ids),
-                                ('picking_type_id', 'in', most_prep_ids),
-                                ('state', 'not in', ['done', 'cancel']),
-                            ]],
-                            kwargs={'fields': ['id', 'group_id'], 'limit': 1000},
-                        ) or []
-                        groups_with_pending = {
-                            s['group_id'][0]
-                            for s in pending_preps
-                            if s.get('group_id')
-                        }
-                    # Solo los OUT cuyos preps ya terminaron
-                    for p in mostrador_out_all:
-                        gid = p['group_id'][0] if p.get('group_id') else False
-                        if gid and gid in groups_with_pending:
-                            pass  # tiene preps pendientes, no va a despachar
-                        else:
-                            mostrador_despachar.append(p)
+                    # FIX: si los tipos de preparación y OUT comparten IDs,
+                    # la lógica de siblings no aplica (es el mismo picking).
+                    has_overlap = bool(set(most_prep_ids) & set(most_ids))
+                    if not has_overlap:
+                        group_ids = list({
+                            p['group_id'][0]
+                            for p in mostrador_out_all
+                            if p.get('group_id')
+                        })
+                        groups_with_pending = set()
+                        if group_ids:
+                            pending_preps = self._execute_kw(
+                                'stock.picking', 'search_read',
+                                args=[[
+                                    ('group_id', 'in', group_ids),
+                                    ('picking_type_id', 'in', most_prep_ids),
+                                    ('state', 'not in', ['done', 'cancel']),
+                                ]],
+                                kwargs={'fields': ['id', 'group_id'], 'limit': 1000},
+                            ) or []
+                            groups_with_pending = {
+                                s['group_id'][0]
+                                for s in pending_preps
+                                if s.get('group_id')
+                            }
+                        # Solo los OUT cuyos preps ya terminaron
+                        for p in mostrador_out_all:
+                            gid = p['group_id'][0] if p.get('group_id') else False
+                            if gid and gid in groups_with_pending:
+                                pass  # tiene preps pendientes, no va a despachar
+                            else:
+                                mostrador_despachar.append(p)
+                    else:
+                        # Mismo tipo de operación: filtrar directo por estados
+                        mostrador_despachar = mostrador_out_all
                 else:
                     # Sin tipo prep definido, todos van a despachar
                     mostrador_despachar = mostrador_out_all
