@@ -55,7 +55,7 @@
             <!-- Columns -->
             <div class="rd-columns-container" t-if="state.configured">
                 <t t-foreach="state.visibleColumns" t-as="colKey" t-key="colKey">
-                    <div t-attf-class="rd-column rd-column-#{colKey}" t-att-style="getColumnItems(colKey).length === 0 and colKey === 'mostrador_despachar' ? 'flex: 0 0 50px; min-width: 50px;' : ''">
+                    <div t-attf-class="rd-column rd-column-#{colKey}">
                         <div class="rd-column-header">
                             <h3 class="rd-column-title">
                                 <t t-esc="getColumnLabel(colKey)" />
