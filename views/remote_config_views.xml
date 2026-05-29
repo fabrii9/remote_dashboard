@@ -36,6 +36,7 @@
                             <field name="max_retries" />
                             <field name="sync_interval" />
                             <field name="remote_filter_id" />
+                            <field name="so_font_size" placeholder="0" />
                         </group>
                     </group>
 

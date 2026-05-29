@@ -79,6 +79,7 @@ export class RemoteDashboard extends Component {
                 this.state.zplLabelMode = data.zpl_label_mode || "none";
                 this.state.hasZplPrinter = data.has_zpl_printer || false;
                 this.state.hasRicohPrinter = data.has_ricoh_printer || false;
+                this.state.soFontSize = data.so_font_size || 0;
             }
         } catch (e) {
             console.error("Dashboard load error:", e);

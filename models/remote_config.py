@@ -232,6 +232,13 @@ class RemoteOdooConfig(models.Model):
         help='Oculta el nombre del cliente y el desglose de productos en esta columna.',
     )
 
+    # ---- Apariencia ----
+    so_font_size = fields.Integer(
+        string='Tamaño fuente pedido (px)',
+        default=0,
+        help='Tamaño de fuente en píxeles para el número de pedido en las tarjetas. 0 = tamaño por defecto.',
+    )
+
     # ---- Etiquetas ZPL ----
     zpl_label_mode = fields.Selection(
         [
@@ -1611,6 +1618,7 @@ class RemoteOdooConfig(models.Model):
             'has_ricoh_printer': bool(
                 config.enable_ricoh_print and config.ricoh_host and config.ricoh_port
             ),
+            'so_font_size': config.so_font_size or 0,
         }
 
     @api.model

@@ -80,10 +80,12 @@
                                             <a t-if="picking.sale_order_remote_id and picking.origin"
                                                class="rd-card-so rd-remote-link"
                                                t-on-click="(ev) => this.openRemoteSaleOrder(ev, picking.sale_order_remote_id)"
-                                               t-att-title="'Abrir pedido: ' + picking.origin">
+                                               t-att-title="'Abrir pedido: ' + picking.origin"
+                                               t-att-style="state.soFontSize ? ('font-size: ' + state.soFontSize + 'px') : ''">
                                                 <t t-esc="picking.origin" />
                                             </a>
-                                            <span t-elif="picking.origin" class="rd-card-so">
+                                            <span t-elif="picking.origin" class="rd-card-so"
+                                                  t-att-style="state.soFontSize ? ('font-size: ' + state.soFontSize + 'px') : ''">
                                                 <t t-esc="picking.origin" />
                                             </span>
 
@@ -112,28 +114,30 @@
                                             <a class="rd-picking-number rd-remote-link" t-on-click="(ev) => this.openRemotePicking(ev, picking.remote_id)" t-att-title="'Abrir picking: ' + picking.name">
                                                 <t t-esc="picking.name" />
                                             </a>
-                                            <button class="btn btn-sm btn-outline-secondary rd-sidebar-btn" t-on-click="(ev) => this.onPrintPicking(ev, picking.remote_id)" title="Imprimir PDF (nueva pestaña)">
+                                            <button t-if="!state.columns[colKey].hide_client_and_products"
+                                                    class="btn btn-sm btn-outline-secondary rd-sidebar-btn" t-on-click="(ev) => this.onPrintPicking(ev, picking.remote_id)" title="Imprimir PDF (nueva pestaña)">
                                                 <i class="fa fa-print" />
                                             </button>
-                                            <button t-if="state.hasRicohPrinter"
+                                            <button t-if="state.hasRicohPrinter and !state.columns[colKey].hide_client_and_products"
                                                     class="btn btn-sm btn-primary rd-sidebar-btn"
                                                     t-on-click="(ev) => this.onPrintRicoh(ev, picking.remote_id)"
                                                     title="Imprimir en Ricoh (TCP RAW)">
                                                 <i class="fa fa-send" />
                                             </button>
-                                            <button t-if="state.zplLabelMode !== 'none' and state.hasZplPrinter"
+                                            <button t-if="state.zplLabelMode !== 'none' and state.hasZplPrinter and !state.columns[colKey].hide_client_and_products"
                                                     class="btn btn-sm btn-warning rd-sidebar-btn"
                                                     t-on-click="(ev) => this.onPrintZPLLabel(ev, picking.remote_id)"
                                                     title="Imprimir Etiqueta ZPL">
                                                 <i class="fa fa-barcode" />
                                             </button>
-                                            <button t-if="state.zplLabelMode !== 'none'"
+                                            <button t-if="state.zplLabelMode !== 'none' and !state.columns[colKey].hide_client_and_products"
                                                     class="btn btn-sm btn-info rd-sidebar-btn"
                                                     t-on-click="(ev) => this.onViewZPLLabel(ev, picking.remote_id)"
                                                     title="Ver ZPL">
                                                 <i class="fa fa-file-text-o" />
                                             </button>
-                                            <button class="btn btn-sm btn-success rd-sidebar-btn" t-on-click="(ev) => this.onValidatePicking(ev, picking.remote_id)" title="Validar">
+                                            <button t-if="!state.columns[colKey].hide_client_and_products"
+                                                    class="btn btn-sm btn-success rd-sidebar-btn" t-on-click="(ev) => this.onValidatePicking(ev, picking.remote_id)" title="Validar">
                                                 <i class="fa fa-check" />
                                             </button>
                                         </div>
