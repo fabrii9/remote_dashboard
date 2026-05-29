@@ -640,7 +640,7 @@ class RemoteOdooConfig(models.Model):
         MoveLine = self.env['remote.odoo.move.line'].sudo()
         remote_fields = [
             'name', 'partner_id', 'scheduled_date', 'state',
-            'origin', 'picking_type_id', 'x_Tipo_Pedido', 'create_date',
+            'origin', 'picking_type_id', 'x_Tipo_Pedido', 'x_fecha_prioridad',
             'state_detail_id',
         ]
 
@@ -1039,7 +1039,7 @@ class RemoteOdooConfig(models.Model):
                         p['picking_type_id'][1] if p.get('picking_type_id') else ''
                     ),
                     'x_tipo_pedido': p.get('x_Tipo_Pedido') or '',
-                    'create_date_remote': p.get('create_date') or False,
+                    'priority_date_remote': p.get('x_fecha_prioridad') or False,
                     'column_type': col_name,
                 })
 
@@ -1518,7 +1518,7 @@ class RemoteOdooConfig(models.Model):
             ['remote_id', 'name', 'partner_name', 'scheduled_date',
              'state', 'state_label', 'origin', 'sale_order_remote_id',
              'column_type', 'picking_type_name', 'sub_state',
-             'x_tipo_pedido', 'create_date_remote'],
+             'x_tipo_pedido', 'priority_date_remote'],
             order='scheduled_date asc, name asc',
         )
 
@@ -1542,7 +1542,7 @@ class RemoteOdooConfig(models.Model):
         now = fields.Datetime.now()
         for p in all_pickings:
             p['partner_name'] = self._clean_partner_name(p.get('partner_name') or '')
-            cdate = p.get('create_date_remote')
+            cdate = p.get('priority_date_remote')
             if cdate:
                 if isinstance(cdate, str):
                     from datetime import datetime

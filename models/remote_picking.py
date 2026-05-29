@@ -34,7 +34,7 @@ class RemoteOdooPicking(models.Model):
     sub_state = fields.Char(string='Sub-estado')
     picking_type_name = fields.Char(string='Tipo de Operación')
     x_tipo_pedido = fields.Char(string='Tipo de Pedido')
-    create_date_remote = fields.Datetime(string='Fecha Creación Remoto')
+    priority_date_remote = fields.Datetime(string='Fecha Prioridad Remoto')
     column_type = fields.Selection(
         [
             ('en_preparacion', 'En Preparación'),
