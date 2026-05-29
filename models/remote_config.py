@@ -321,8 +321,8 @@ class RemoteOdooConfig(models.Model):
                 if attempt == retries - 1:
                     raise
                 if e.errcode == 429:
-                    # Rate-limited: esperar más tiempo antes de reintentar
-                    delay = 30.0 * (attempt + 1) + random.uniform(0, 2.0)
+                    # Rate-limited: backoff exponencial más razonable
+                    delay = 10.0 * (2 ** attempt) + random.uniform(0, 2.0)
                     _logger.warning(
                         "Rate limited (429) por el servidor remoto "
                         "(intento %d/%d), reintentando en %.1fs",
@@ -641,8 +641,8 @@ class RemoteOdooConfig(models.Model):
         remote_fields = [
             'name', 'partner_id', 'scheduled_date', 'state',
             'origin', 'picking_type_id', 'x_Tipo_Pedido', 'create_date',
+            'state_detail_id',
         ]
-        has_state_detail = True
 
         prep_ids = self._parse_ids(self.preparacion_picking_type_ids)
         desp_ids = self._parse_ids(self.despachar_picking_type_ids)
@@ -825,22 +825,11 @@ class RemoteOdooConfig(models.Model):
                 except Exception:
                     _logger.info("No se pudieron resolver sale.order desde origin")
 
-            # Sub-estados
-            all_ids = [p['id'] for p in all_remote]
+            # Sub-estados (extraídos directamente del search_read inicial)
             state_detail_map = {}
-            if all_ids and has_state_detail:
-                try:
-                    detail_data = self._execute_kw(
-                        'stock.picking', 'read',
-                        args=[all_ids],
-                        kwargs={'fields': ['state_detail_id']},
-                    )
-                    for d in (detail_data or []):
-                        if d.get('state_detail_id'):
-                            state_detail_map[d['id']] = d['state_detail_id'][1]
-                except Exception:
-                    has_state_detail = False
-                    _logger.info("Campo state_detail_id no disponible")
+            for p in all_remote:
+                if p.get('state_detail_id'):
+                    state_detail_map[p['id']] = p['state_detail_id'][1]
 
             # Aplicar filtro de sub-estados (post-fetch, usando state_detail_map)
             if prep_sub_states and state_detail_map:
@@ -869,14 +858,14 @@ class RemoteOdooConfig(models.Model):
                         args=[[('picking_id', 'in', mostrador_ids)]],
                         kwargs={'fields': move_fields, 'limit': 5000},
                     ) or []
-                    # Fetch product default_code for ZPL
+                    # Fetch product default_code for ZPL (solo si ZPL está activo)
                     _product_ids = list({
                         m['product_id'][0]
                         for m in moves if m.get('product_id')
                     })
                     _product_code_map = {}
                     _product_categ_map = {}
-                    if _product_ids:
+                    if _product_ids and self.zpl_label_mode != 'none':
                         try:
                             _prods = self._execute_kw(
                                 'product.product', 'read',
