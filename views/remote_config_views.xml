@@ -144,6 +144,8 @@
                             <group>
                                 <group string="Generación de Etiquetas">
                                     <field name="zpl_label_mode" />
+                                    <field name="tela_category_param"
+                                           placeholder="printemps.categorias_corte_tela" />
                                 </group>
                                 <group string="Impresora ZPL (auto-impresión)">
                                     <field name="zpl_printer_url"

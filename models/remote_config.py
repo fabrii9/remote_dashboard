@@ -64,12 +64,6 @@ BUNDLE_MAP = {
     "TTU0151": 2, "TTU0150": 4, "TTU0149": 4, "TTU0152": 2, "TTU0104": 3,
 }
 
-CATEGORY_IDS = [
-    125, 198, 183, 223, 224, 210, 209, 202, 203, 204, 205, 218, 206, 207,
-    180, 156, 225, 157, 214, 174, 217, 212, 213, 211, 149, 150, 244, 245,
-    243, 246, 242, 176, 175, 148, 177, 178, 222, 221, 136, 109, 124, 123,
-    134, 208,
-]
 
 
 class RemoteOdooConfig(models.Model):
@@ -260,6 +254,14 @@ class RemoteOdooConfig(models.Model):
     zpl_logo = fields.Text(
         string='Logo ZPL',
         help='Código GFA del logo para incluir en la etiqueta (^FO...^GFA,...^FS)',
+    )
+    tela_category_param = fields.Char(
+        string='Parámetro categorías de tela (remoto)',
+        default='printemps.categorias_corte_tela',
+        help='Clave del parámetro del sistema (ir.config_parameter) en el Odoo '
+             'remoto que contiene los IDs de categorías de "telas a cortar", '
+             'separados por coma. El módulo lo lee por XML-RPC. '
+             'Vacío = no se filtran telas (etiqueta simple vacía).',
     )
 
     # ---- Impresora PDF Ricoh (RAW TCP) ----
@@ -1172,11 +1174,39 @@ class RemoteOdooConfig(models.Model):
             return self._generate_zpl_simple(picking, move_lines)
         return ''
 
+    def _get_tela_category_ids(self):
+        """Lee del Odoo remoto los IDs de categorías de tela desde un
+        parámetro del sistema (ir.config_parameter). Única fuente de verdad,
+        compartida con la acción de servidor remota. Sin fallback: si el
+        parámetro no existe o está vacío, devuelve lista vacía (a propósito,
+        para que la etiqueta salga vacía y se detecte la mala configuración).
+        """
+        self.ensure_one()
+        key = (self.tela_category_param or '').strip()
+        if not key:
+            return []
+        try:
+            raw = self._execute_kw(
+                'ir.config_parameter', 'get_param', args=[key],
+            )
+        except Exception:
+            _logger.exception(
+                "No se pudo leer el parámetro remoto '%s' de categorías de tela", key,
+            )
+            return []
+        if not raw or not isinstance(raw, str):
+            _logger.warning(
+                "Parámetro remoto '%s' vacío o inexistente: no se marcarán telas.", key,
+            )
+            return []
+        return [int(x) for x in raw.split(',') if x.strip().isdigit()]
+
     def _generate_zpl_simple(self, picking, move_lines):
-        """One label per move line filtered by CATEGORY_IDS (telas a cortar)."""
+        """One label per move line filtered by categorías de tela remotas (telas a cortar)."""
+        category_ids = self._get_tela_category_ids()
         telas = [
             ml for ml in move_lines
-            if ml.product_categ_id in CATEGORY_IDS
+            if ml.product_categ_id in category_ids
         ]
         if not telas:
             return ''
