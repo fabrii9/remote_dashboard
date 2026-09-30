@@ -1,6 +1,6 @@
 {
     'name': 'Dashboard Remoto',
-    'version': '16.0.10.0.0',
+    'version': '16.0.11.0.0',
     'category': 'Inventory',
     'summary': 'Dashboards múltiples conectados a Odoo 18 remoto',
     'description': """

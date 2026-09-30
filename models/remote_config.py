@@ -1230,13 +1230,16 @@ class RemoteOdooConfig(models.Model):
                 "^FO150,50\n"
                 "^GB4,1100,4^FS\n"
                 "\n"
+                "^FO200,50\n"
+                "^A0R,45,45^FDTipo de pedido: %s^FS\n"
+                "\n"
                 "^FO300,50\n"
-                "^A0R,45,45^FDA cortar: %s mts^FS\n"
+                "^A0R,65,65^FDA cortar: %s mts^FS\n"
                 "\n"
                 "^FO400,50\n"
                 "^A0R,40,40^FD%s^FS\n"
                 "\n"
-                "^FO500,50\n"
+                "^FO510,50\n"
                 "^A0R,45,45^FDProducto:^FS\n"
                 "\n"
                 "^FO600,50\n"
@@ -1249,6 +1252,7 @@ class RemoteOdooConfig(models.Model):
                 "^A0R,60,60^FD%s^FS\n"
             ) % (
                 idx, total_telas,
+                picking.x_tipo_pedido or '',
                 int(ml.product_qty) if ml.product_qty == int(ml.product_qty) else ml.product_qty,
                 ml.product_name or '',
                 pedido, cliente,
