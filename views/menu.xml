@@ -9,6 +9,7 @@
 
     <!-- Menu principal -->
     <menuitem id="menu_remote_dashboard_root"
+              web_icon="remote_dashboard,static/description/icon.png"
               name="Dashboard Remoto"
               sequence="1"/>
 
