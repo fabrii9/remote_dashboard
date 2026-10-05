@@ -11,11 +11,11 @@
             <form string="Configuración Dashboard Remoto">
                 <header>
                     <button name="test_connection" type="object" string="Probar Conexión"
-                            class="btn-primary" icon="fa-plug" />
+                            class="btn-primary" icon="power" />
                     <button name="action_manual_sync" type="object" string="Sincronizar Ahora"
-                            class="btn-secondary" icon="fa-cloud-download" />
+                            class="btn-secondary" icon="cloud_download" />
                     <button name="action_open_dashboard" type="object" string="Abrir Dashboard"
-                            class="btn-success" icon="fa-tv" />
+                            class="btn-success" icon="tv" />
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -78,7 +78,7 @@
                                 <group string="Estados principales">
                                     <button name="action_fetch_states" type="object"
                                             string="Obtener Estados del Remoto"
-                                            class="btn-primary" icon="fa-download" />
+                                            class="btn-primary" icon="download" />
                                     <field name="available_states" readonly="1"
                                            widget="text" placeholder="Presione el botón para cargar..." />
                                 </group>
@@ -93,7 +93,7 @@
                                 <group string="Sub-estados (state_detail_id)">
                                     <button name="action_fetch_sub_states" type="object"
                                             string="Obtener Sub-estados del Remoto"
-                                            class="btn-primary" icon="fa-download" />
+                                            class="btn-primary" icon="download" />
                                     <field name="available_sub_states" readonly="1"
                                            widget="text" placeholder="Presione el botón para cargar..." />
                                 </group>
@@ -105,7 +105,7 @@
                                 </group>
                             </group>
                             <div class="alert alert-info" role="alert">
-                                <i class="fa fa-info-circle" />
+                                <i class="oi" data-icon="info" title="Información" />
                                 <strong> Ayuda:</strong>
                                 <ul>
                                     <li>Presione <em>"Obtener Estados"</em> para ver los estados principales (ej: <code>assigned</code>) y copie los que quiera mostrar en el campo de filtro correspondiente.</li>
@@ -120,7 +120,7 @@
                                 <group>
                                     <button name="action_fetch_tipo_pedido" type="object"
                                             string="Obtener Tipos de Pedido"
-                                            class="btn-primary" icon="fa-download" />
+                                            class="btn-primary" icon="download" />
                                     <field name="available_tipo_pedido" readonly="1"
                                            widget="text" placeholder="Presione el botón para cargar los valores..." />
                                 </group>
@@ -130,7 +130,7 @@
                                 </group>
                             </group>
                             <div class="alert alert-info" role="alert">
-                                <i class="fa fa-info-circle" title="Ayuda" />
+                                <i class="oi" data-icon="info" title="Ayuda" />
                                 <strong> Ayuda:</strong>
                                 Primero presione <em>"Obtener Tipos de Pedido"</em> para consultar los valores
                                 disponibles de <code>x_Tipo_Pedido</code> en el Odoo remoto.
@@ -158,7 +158,7 @@
                                        placeholder="Pegue aquí el código GFA del logo (^FO...^GFA,...^FS)" />
                             </group>
                             <div class="alert alert-info" role="alert">
-                                <i class="fa fa-info-circle" />
+                                <i class="oi" data-icon="info" title="Información" />
                                 <strong> Modos de etiqueta:</strong>
                                 <ul>
                                     <li><strong>Simple:</strong> Una etiqueta por línea de producto (todos los productos).</li>
@@ -166,8 +166,8 @@
                                 </ul>
                                 <strong>Botones en el dashboard:</strong>
                                 <ul>
-                                    <li><i class="fa fa-barcode" /> Envía la etiqueta a la impresora ZPL (requiere URL y token).</li>
-                                    <li><i class="fa fa-file-text-o" /> Abre el código ZPL como texto en una nueva pestaña.</li>
+                                    <li><i class="oi" data-icon="barcode" title="Imprimir etiqueta" /> Envía la etiqueta a la impresora ZPL (requiere URL y token).</li>
+                                    <li><i class="oi" data-icon="description" title="Ver ZPL" /> Abre el código ZPL como texto en una nueva pestaña.</li>
                                 </ul>
                             </div>
                         </page>
@@ -178,26 +178,26 @@
                                     <field name="enable_ricoh_print" />
                                 </group>
                             </group>
-                            <group attrs="{'invisible': [('enable_ricoh_print', '=', False)]}">
+                            <group invisible="not enable_ricoh_print">
                                 <group string="Conexión TCP">
                                     <field name="ricoh_host"
                                            placeholder="ej: aa890aa70c96.sn.mynetname.net"
-                                           attrs="{'required': [('enable_ricoh_print', '=', True)]}" />
+                                           required="enable_ricoh_print" />
                                     <field name="ricoh_port"
-                                           attrs="{'required': [('enable_ricoh_print', '=', True)]}" />
+                                           required="enable_ricoh_print" />
                                     <field name="ricoh_timeout" />
                                 </group>
                                 <group string="Prueba">
                                     <button name="test_ricoh_connection" type="object"
                                             string="Probar conexión TCP"
-                                            class="btn-secondary" icon="fa-plug" />
+                                            class="btn-secondary" icon="power" />
                                 </group>
                             </group>
                             <div class="alert alert-info" role="alert"
-                                 attrs="{'invisible': [('enable_ricoh_print', '=', False)]}">
-                                <i class="fa fa-info-circle" />
+                                 invisible="not enable_ricoh_print">
+                                <i class="oi" data-icon="info" title="Información" />
                                 <strong> Cómo funciona:</strong>
-                                <p>Al presionar el botón <i class="fa fa-print" />
+                                <p>Al presionar el botón <i class="oi" data-icon="print" title="Imprimir" />
                                    <strong> Imprimir en Ricoh</strong> en el dashboard,
                                    el servidor descarga el PDF del picking desde el Odoo remoto
                                    y lo envía directamente a la impresora por socket TCP RAW.</p>
@@ -217,14 +217,14 @@
         <field name="name">remote.odoo.config.tree</field>
         <field name="model">remote.odoo.config</field>
         <field name="arch" type="xml">
-            <tree string="Dashboards">
+            <list string="Dashboards">
                 <field name="name" />
                 <field name="url" />
                 <field name="database" />
                 <field name="last_sync" />
                 <field name="show_mostrador_preparacion" />
                 <field name="show_mostrador_despachar" />
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -235,14 +235,14 @@
         <field name="name">remote.odoo.config.tableros.tree</field>
         <field name="model">remote.odoo.config</field>
         <field name="arch" type="xml">
-            <tree string="Tableros activos" create="false" delete="false">
+            <list string="Tableros activos" create="false" delete="false">
                 <field name="name" string="Tablero" />
                 <field name="url" string="Servidor" />
                 <field name="last_sync" string="Última Sync" />
                 <button name="action_open_dashboard" type="object"
                         string="Abrir"
-                        class="btn-primary" icon="fa-tv" />
-            </tree>
+                        class="btn-primary" icon="tv" />
+            </list>
         </field>
     </record>
 
@@ -252,7 +252,7 @@
     <record id="action_remote_config" model="ir.actions.act_window">
         <field name="name">Dashboards</field>
         <field name="res_model">remote.odoo.config</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_remote_odoo_config_tree" />
     </record>
 
@@ -260,7 +260,7 @@
     <record id="action_remote_tableros" model="ir.actions.act_window">
         <field name="name">Tableros</field>
         <field name="res_model">remote.odoo.config</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">list</field>
         <field name="view_id" ref="view_remote_odoo_config_tableros_tree" />
     </record>
 

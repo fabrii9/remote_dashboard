@@ -1,0 +1,5 @@
+id,name,model_id,group_id/id,operation,domain
+access_remote_odoo_config,remote.odoo.config,remote.odoo.config,base.group_user,crud,
+access_remote_odoo_picking,remote.odoo.picking,remote.odoo.picking,base.group_user,crud,
+access_remote_odoo_log,remote.odoo.log,remote.odoo.log,base.group_user,crud,
+access_remote_odoo_move_line,remote.odoo.move.line,remote.odoo.move.line,base.group_user,crud,

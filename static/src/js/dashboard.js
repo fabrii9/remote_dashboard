@@ -1,16 +1,18 @@
-/** @odoo-module */
+import { Component, proxy, onWillStart, onMounted, onWillUnmount, useProps } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-
-const { Component, useState, onWillStart, onMounted, onWillUnmount } = owl;
+import { standardActionServiceProps } from "@web/webclient/actions/action_plugin";
 
 export class RemoteDashboard extends Component {
+    static template = "remote_dashboard.Dashboard";
+    props = useProps(standardActionServiceProps);
+
     setup() {
-        this.rpc = useService("rpc");
+        this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
 
-        this.state = useState({
+        this.state = proxy({
             loading: true,
             syncing: false,
             configured: false,
@@ -61,12 +63,7 @@ export class RemoteDashboard extends Component {
 
     async loadDashboard() {
         try {
-            const data = await this.rpc("/web/dataset/call_kw", {
-                model: "remote.odoo.config",
-                method: "get_dashboard_data",
-                args: [this.configId],
-                kwargs: {},
-            });
+            const data = await this.orm.call("remote.odoo.config", "get_dashboard_data", [this.configId]);
 
             this.state.configured = data.configured;
             if (data.configured) {
@@ -96,16 +93,11 @@ export class RemoteDashboard extends Component {
     async onSyncRemote() {
         this.state.syncing = true;
         try {
-            await this.rpc("/web/dataset/call_kw", {
-                model: "remote.odoo.config",
-                method: "action_sync_pickings",
-                args: [this.configId],
-                kwargs: {},
-            });
+            await this.orm.call("remote.odoo.config", "action_sync_pickings", [this.configId]);
             await this.loadDashboard();
             this.notification.add("Sincronización completada", { type: "success" });
         } catch (e) {
-            this.notification.add("Error al sincronizar: " + (e.message || e), { type: "danger" });
+            this.notification.add("Error al sincronizar: " + this._errorMessage(e), { type: "danger" });
         }
         this.state.syncing = false;
     }
@@ -148,16 +140,11 @@ export class RemoteDashboard extends Component {
         ev.stopPropagation();
         if (!confirm("¿Confirmar validación del picking?")) return;
         try {
-            await this.rpc("/web/dataset/call_kw", {
-                model: "remote.odoo.config",
-                method: "validate_remote_picking",
-                args: [this.configId, remoteId],
-                kwargs: {},
-            });
+            await this.orm.call("remote.odoo.config", "validate_remote_picking", [this.configId, remoteId]);
             this.notification.add("Picking validado correctamente", { type: "success" });
             await this.loadDashboard();
         } catch (e) {
-            this.notification.add("Error al validar: " + (e.message || e), { type: "danger" });
+            this.notification.add("Error al validar: " + this._errorMessage(e), { type: "danger" });
         }
     }
 
@@ -175,15 +162,10 @@ export class RemoteDashboard extends Component {
         ev.stopPropagation();
         if (!confirm("¿Enviar el PDF de este picking a la impresora Ricoh?")) return;
         try {
-            await this.rpc("/web/dataset/call_kw", {
-                model: "remote.odoo.config",
-                method: "print_picking_ricoh",
-                args: [this.configId, remoteId],
-                kwargs: {},
-            });
+            await this.orm.call("remote.odoo.config", "print_picking_ricoh", [this.configId, remoteId]);
             this.notification.add("PDF enviado a la impresora", { type: "success" });
         } catch (e) {
-            this.notification.add("Error al imprimir: " + (e.message || e), { type: "danger" });
+            this.notification.add("Error al imprimir: " + this._errorMessage(e), { type: "danger" });
         }
     }
 
@@ -191,33 +173,27 @@ export class RemoteDashboard extends Component {
         ev.stopPropagation();
         if (!confirm("¿Imprimir etiqueta ZPL?")) return;
         try {
-            await this.rpc("/web/dataset/call_kw", {
-                model: "remote.odoo.config",
-                method: "print_zpl_label",
-                args: [this.configId, remoteId],
-                kwargs: {},
-            });
+            await this.orm.call("remote.odoo.config", "print_zpl_label", [this.configId, remoteId]);
             this.notification.add("Etiqueta enviada a la impresora", { type: "success" });
         } catch (e) {
-            this.notification.add("Error al imprimir ZPL: " + (e.message || e), { type: "danger" });
+            this.notification.add("Error al imprimir ZPL: " + this._errorMessage(e), { type: "danger" });
         }
     }
 
     async onViewZPLLabel(ev, remoteId) {
         ev.stopPropagation();
         try {
-            const url = await this.rpc("/web/dataset/call_kw", {
-                model: "remote.odoo.config",
-                method: "view_zpl_label",
-                args: [this.configId, remoteId],
-                kwargs: {},
-            });
+            const url = await this.orm.call("remote.odoo.config", "view_zpl_label", [this.configId, remoteId]);
             if (url) {
                 window.open(url, "_blank");
             }
         } catch (e) {
-            this.notification.add("Error al generar ZPL: " + (e.message || e), { type: "danger" });
+            this.notification.add("Error al generar ZPL: " + this._errorMessage(e), { type: "danger" });
         }
+    }
+
+    _errorMessage(e) {
+        return e?.data?.message || e?.message || e;
     }
 
     _updateClock() {
@@ -265,7 +241,5 @@ export class RemoteDashboard extends Component {
         return m > 0 ? `${h}h ${m}m` : `${h}h`;
     }
 }
-
-RemoteDashboard.template = "remote_dashboard.Dashboard";
 
 registry.category("actions").add("remote_dashboard.dashboard", RemoteDashboard);

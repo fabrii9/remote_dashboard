@@ -1,6 +1,6 @@
 {
     'name': 'Dashboard Remoto',
-    'version': '16.0.11.0.0',
+    'version': '20.0.11.0.0',
     'category': 'Inventory',
     'summary': 'Dashboards múltiples conectados a Odoo 18 remoto',
     'description': """
@@ -13,7 +13,7 @@
     'author': 'Printemps',
     'depends': ['base', 'web'],
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'views/remote_config_views.xml',
         'views/remote_log_views.xml',
         'views/menu.xml',

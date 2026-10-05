@@ -61,7 +61,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-.rd-clock .fa {
+.rd-clock .oi {
     margin-right: 6px;
     font-size: 1.4rem;
     opacity: 0.8;
@@ -82,7 +82,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-.rd-countdown .fa {
+.rd-countdown .oi {
     margin-right: 3px;
     font-size: 0.7rem;
 }
@@ -387,7 +387,7 @@ a.rd-card-so:hover {
     gap: 4px;
 }
 
-.rd-waiting-badge .fa {
+.rd-waiting-badge .oi {
     font-size: 0.75rem;
 }
 
@@ -441,7 +441,7 @@ a.rd-card-so:hover {
     gap: 4px;
 }
 
-.rd-sidebar-btn .fa {
+.rd-sidebar-btn .oi {
     font-size: 0.8rem;
 }
 
@@ -625,4 +625,12 @@ a.rd-card-so:hover {
         border-bottom: 1px solid #ddd;
         max-height: 50vh;
     }
+}
+
+.rd-icon-2x {
+    font-size: 2em;
+}
+
+.rd-icon-3x {
+    font-size: 3em;
 }

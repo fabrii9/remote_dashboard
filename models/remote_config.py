@@ -1400,8 +1400,6 @@ class RemoteOdooConfig(models.Model):
     @api.model
     def view_zpl_label(self, config_id, remote_id):
         """Generate ZPL and return url to view as text."""
-        import base64
-
         config = self.sudo().browse(config_id)
         if not config.exists():
             raise UserError(_('Configuración no encontrada.'))
@@ -1422,7 +1420,7 @@ class RemoteOdooConfig(models.Model):
                 picking.name or 'etiqueta'
             ).replace('/', '_'),
             'type': 'binary',
-            'datas': base64.b64encode(zpl_text.encode('utf-8')),
+            'raw': zpl_text.encode('utf-8'),
             'mimetype': 'text/plain',
             'public': True,
         })
